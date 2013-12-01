@@ -52,8 +52,8 @@ similarityScore s1 s2 = sScore (length s1) (length s2)
 
     sEntry :: Int -> Int -> Int
     sEntry 0 0 = 0
-    sEntry 0 y = score '-' (s2 !! (y - 1)) + sScore 0 (y - 1)
     sEntry x 0 = score (s1 !! (x - 1)) '-' + sScore (x - 1) 0
+    sEntry 0 y = score '-' (s2 !! (y - 1)) + sScore 0 (y - 1)
     sEntry x y = maximum [score cx cy  + sScore (x - 1) (y - 1),
                           score cx '-' + sScore (x - 1) y,
                           score '-' cy + sScore x (y - 1)]
@@ -69,3 +69,28 @@ optAlignmentsUnoptimized (x:xs) (y:ys) =
   maximaBy tupleScore . concat $ [attachHeads x y   $ optAlignmentsUnoptimized xs ys,
                                   attachHeads x '-' $ optAlignmentsUnoptimized xs (y:ys),
                                   attachHeads '-' y $ optAlignmentsUnoptimized (x:xs) ys]
+
+add :: Char -> Char -> (Int, [AlignmentType]) -> (Int, [AlignmentType])
+add h1 h2 (i, a) = ((score h1 h2) + i, attachHeads h1 h2 a)
+
+optAlignments :: String -> String -> [AlignmentType]
+optAlignments s1 s2 = snd (optA (length s1) (length s2))
+  where
+    cx x = s1 !! (x - 1)
+    cy y = s2 !! (y - 1)
+
+    optA :: Int -> Int -> (Int, [AlignmentType])
+    optA x y = oTable !! x !! y
+    oTable = [[ oEntry x y | y <- [0..]] | x <- [0..]]
+
+    oEntry :: Int -> Int -> (Int, [AlignmentType])
+    oEntry 0 0 = (0, [([], [])])
+    oEntry x 0 = add (cx x) '-' (optA (x - 1) 0)
+    oEntry 0 y = add '-' (cy y) (optA 0 (y - 1))
+    oEntry x y = 
+      maximaBy fst [add (cx x) (cy y) (optA (x - 1) (y - 1)),
+                    add (cx x) '-' (optA (x - 1) y),
+                    add '-' (cy y) (optA x (y - 1))])
+
+
+
