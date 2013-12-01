@@ -70,8 +70,8 @@ optAlignmentsUnoptimized (x:xs) (y:ys) =
                                   attachHeads x '-' $ optAlignmentsUnoptimized xs (y:ys),
                                   attachHeads '-' y $ optAlignmentsUnoptimized (x:xs) ys]
 
-optAlignments :: String -> String -> (Int, [AlignmentType])
-optAlignments s1 s2 = optA (length s1) (length s2)
+optAlignments :: String -> String -> [AlignmentType]
+optAlignments s1 s2 = [(reverse x, reverse y) | (x, y) <- snd . optA (length s1) $ (length s2)]
   where
     cx x = s1 !! (x - 1)
     cy y = s2 !! (y - 1)
@@ -87,10 +87,10 @@ optAlignments s1 s2 = optA (length s1) (length s2)
     oEntry 0 0 = (0, [([], [])])
     oEntry x 0 = add (cx x) '-' $ optA (x - 1) 0
     oEntry 0 y = add '-' (cy y) $ optA 0 (y - 1)
-    oEntry x y = (fst . head $ a, concat . map snd $ a)
-                    where a = maximaBy fst $ [add (cx x) (cy y) $ optA (x - 1) (y - 1),
-                                              add (cx x) '-'    $ optA (x - 1) y,
-                                              add '-' (cy y)    $ optA x (y - 1)]
+    oEntry x y = (fst . head $ res, concat . map snd $ res)
+      where res = maximaBy fst $ [add (cx x) (cy y) $ optA (x - 1) (y - 1),
+                                  add (cx x) '-'    $ optA (x - 1) y,
+                                  add '-' (cy y)    $ optA x (y - 1)]
 
 
 
