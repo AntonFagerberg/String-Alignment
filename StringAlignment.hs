@@ -70,14 +70,14 @@ optAlignmentsUnoptimized (x:xs) (y:ys) =
                                   attachHeads x '-' $ optAlignmentsUnoptimized xs (y:ys),
                                   attachHeads '-' y $ optAlignmentsUnoptimized (x:xs) ys]
 
-add :: Char -> Char -> (Int, [AlignmentType]) -> (Int, [AlignmentType])
-add h1 h2 (i, a) = ((score h1 h2) + i, attachHeads h1 h2 a)
-
-optAlignments :: String -> String -> [AlignmentType]
-optAlignments s1 s2 = snd (optA (length s1) (length s2))
+optAlignments :: String -> String -> (Int, [AlignmentType])
+optAlignments s1 s2 = optA (length s1) (length s2)
   where
     cx x = s1 !! (x - 1)
     cy y = s2 !! (y - 1)
+
+    add :: Char -> Char -> (Int, [AlignmentType]) -> (Int, [AlignmentType])
+    add h1 h2 (i, a) = ((score h1 h2) + i, attachHeads h1 h2 a)
 
     optA :: Int -> Int -> (Int, [AlignmentType])
     optA x y = oTable !! x !! y
@@ -85,12 +85,12 @@ optAlignments s1 s2 = snd (optA (length s1) (length s2))
 
     oEntry :: Int -> Int -> (Int, [AlignmentType])
     oEntry 0 0 = (0, [([], [])])
-    oEntry x 0 = add (cx x) '-' (optA (x - 1) 0)
-    oEntry 0 y = add '-' (cy y) (optA 0 (y - 1))
-    oEntry x y = 
-      maximaBy fst [add (cx x) (cy y) (optA (x - 1) (y - 1)),
-                    add (cx x) '-' (optA (x - 1) y),
-                    add '-' (cy y) (optA x (y - 1))])
+    oEntry x 0 = add (cx x) '-' $ optA (x - 1) 0
+    oEntry 0 y = add '-' (cy y) $ optA 0 (y - 1)
+    oEntry x y = (fst . head $ a, concat . map snd $ a)
+                    where a = maximaBy fst $ [add (cx x) (cy y) $ optA (x - 1) (y - 1),
+                                              add (cx x) '-'    $ optA (x - 1) y,
+                                              add '-' (cy y)    $ optA x (y - 1)]
 
 
 
